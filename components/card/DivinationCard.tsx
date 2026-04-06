@@ -461,7 +461,7 @@ export const DivinationCard = forwardRef<HTMLDivElement, DivinationCardProps>(
               </div>
               <div className="flex flex-col">
                 <span style={{ fontSize: "14px", color: "#6B6487", letterSpacing: "0.1em" }}>
-                  fate.riba2534.cn
+                  fate.red
                 </span>
                 <span style={{ fontSize: "12px", color: "#6B6487", marginTop: "4px" }}>
                   · 此卦应心诚者 ·
