@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@theme {
+  /* 神秘暗色主题：深紫黑夜空 + 神秘紫 + 星光金 */
+  --color-void: #0A0618;
+  --color-surface: #1A1230;
+  --color-elevated: #231843;
+  --color-purple: #7C3AED;
+  --color-purple-soft: #A78BFA;
+  --color-gold: #D4AF37;
+  --color-gold-soft: #F0D98B;
+  --color-crimson: #9F1239;
+  --color-text: #F5F3FF;
+  --color-text-muted: #A09AB8;
+  --color-text-dim: #6B6487;
+
+  /* 字体 */
+  --font-display: "ZCOOL XiaoWei", "Noto Serif SC", "Songti SC", serif;
+  --font-serif: "Noto Serif SC", "Songti SC", serif;
+  --font-sans: "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-cinzel: "Cinzel", "Times New Roman", serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+
+  /* 圆角 */
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  /* 过渡 */
+  --ease-mystic: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    background-color: var(--color-void);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* 神秘金色滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.5);
+  }
+
+  /* 选择文本金色 */
+  ::selection {
+    background: rgba(212, 175, 55, 0.3);
+    color: var(--color-gold-soft);
+  }
+}
+
+@layer utilities {
+  /* 金色描边文字 */
+  .text-gold-glow {
+    color: var(--color-gold-soft);
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  }
+
+  /* 紫色发光 */
+  .shadow-purple-glow {
+    box-shadow: 0 0 40px -10px rgba(124, 58, 237, 0.5);
+  }
+
+  /* 金色发光 */
+  .shadow-gold-glow {
+    box-shadow: 0 0 32px -8px rgba(212, 175, 55, 0.5);
+  }
+
+  /* 玻璃拟态 */
+  .glass-mystic {
+    background: linear-gradient(
+      135deg,
+      rgba(35, 24, 67, 0.55) 0%,
+      rgba(26, 18, 48, 0.4) 100%
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+  /* 金色流光分隔线 */
+  .divider-gold {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(212, 175, 55, 0.6) 50%,
+      transparent 100%
+    );
+    height: 1px;
+  }
+
+  /* 命运之轮旋转光圈 */
+  .wheel-glow {
+    filter: drop-shadow(0 0 24px rgba(124, 58, 237, 0.4))
+      drop-shadow(0 0 48px rgba(212, 175, 55, 0.15));
+  }
+
+  /* 尊重用户减弱动效偏好 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* 字体通过 @fontsource 包在 layout.tsx 中加载 */
