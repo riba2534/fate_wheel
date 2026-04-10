@@ -7,6 +7,7 @@ import { MysticButton } from "@/components/ui/MysticButton";
 import { RuneIcon } from "@/components/ui/RuneIcon";
 import { saveHistory } from "@/lib/storage/history";
 import { getClientId } from "@/lib/user-id";
+import { truncateQuestion } from "@/lib/format";
 import type { WheelResponse, DailyResponse, IChingResponse } from "@/types";
 
 interface CardExporterProps {
@@ -26,6 +27,10 @@ export function CardExporter({ data }: CardExporterProps) {
   const [message, setMessage] = useState<string | null>(null);
 
   const filename = `fate-wheel-${data.id.slice(0, 8)}.png`;
+
+  const userQuestion =
+    data.type !== "daily" ? truncateQuestion(data.question, 60) : null;
+  const shareText = userQuestion ? `我问：${userQuestion}` : "来自命轮的一卦";
 
   const shareLink = async () => {
     if (sharing) return;
@@ -47,7 +52,7 @@ export function CardExporter({ data }: CardExporterProps) {
       // 尝试 Web Share API，失败则复制到剪贴板
       if (navigator.share) {
         try {
-          await navigator.share({ title: "命轮占卜", url });
+          await navigator.share({ title: "命轮占卜", text: shareText, url });
           setMessage("已分享");
           return;
         } catch {
@@ -109,7 +114,7 @@ export function CardExporter({ data }: CardExporterProps) {
           await navigator.share({
             files: [new File([blob], filename, { type: "image/png" })],
             title: "命轮占卜卡片",
-            text: "来自命轮的一卦",
+            text: shareText,
           });
           setMessage("已分享");
         } catch (e) {

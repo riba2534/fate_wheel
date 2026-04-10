@@ -8,6 +8,7 @@ import { MysticButton } from "@/components/ui/MysticButton";
 import { RuneIcon } from "@/components/ui/RuneIcon";
 import { CoinToss, type CoinTossHandle } from "@/components/iching/CoinToss";
 import { CardExporter } from "@/components/card/CardExporter";
+import { QuestionContext } from "@/components/card/QuestionContext";
 import { getClientId } from "@/lib/user-id";
 import type { IChingResponse, ApiError } from "@/types";
 
@@ -162,6 +163,9 @@ export default function IChingPage() {
             glow="purple"
             className="animate-in fade-in slide-in-from-bottom-4 duration-700"
           >
+            {result.question && (
+              <QuestionContext question={result.question} className="mb-5" />
+            )}
             <div className="text-center">
               <div
                 className="text-[72px] leading-none text-[var(--color-gold-soft)] mb-3"

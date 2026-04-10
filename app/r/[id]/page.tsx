@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getShare } from "@/lib/db/d1";
+import { truncateQuestion } from "@/lib/format";
 import { StarField } from "@/components/backgrounds/StarField";
 import { MysticHeader } from "@/components/layout/MysticHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { QuestionContext } from "@/components/card/QuestionContext";
 import { RuneIcon } from "@/components/ui/RuneIcon";
 import type { Metadata } from "next";
 
@@ -24,13 +26,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let desc = "一卦一运，知命而行";
   if (data.type === "wheel") {
     title = `${data.sector.name} · ${data.sector.level} · 命轮`;
-    desc = data.reading.summary;
+    const q = truncateQuestion(data.question, 60);
+    desc = q ? `所问：${q} · ${data.reading.summary}` : data.reading.summary;
   } else if (data.type === "daily") {
     title = `${data.signName} · 每日一签`;
     desc = data.reading.summary;
   } else if (data.type === "iching") {
     title = `${data.hexagram.name} · 周易`;
-    desc = data.reading.summary;
+    const q = truncateQuestion(data.question, 60);
+    desc = q ? `所问：${q} · ${data.reading.summary}` : data.reading.summary;
   }
 
   return {
@@ -69,6 +73,9 @@ export default async function ShareResultPage({ params }: PageProps) {
         </section>
 
         <GlassCard padding="lg" glow="purple">
+          {(data.type === "wheel" || data.type === "iching") && data.question && (
+            <QuestionContext question={data.question} className="mb-5" />
+          )}
           {data.type === "wheel" && (
             <div>
               <div className="text-center mb-5">

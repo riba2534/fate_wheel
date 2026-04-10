@@ -11,6 +11,7 @@ import {
   type FortuneWheelHandle,
 } from "@/components/wheel/FortuneWheel";
 import { CardExporter } from "@/components/card/CardExporter";
+import { QuestionContext } from "@/components/card/QuestionContext";
 import { getClientId } from "@/lib/user-id";
 import type { WheelResponse, ApiError } from "@/types";
 
@@ -173,6 +174,9 @@ export default function WheelPage() {
               glow={hue === "gold" ? "gold" : "purple"}
               className="animate-in fade-in slide-in-from-bottom-4 duration-700"
             >
+              {result.question && (
+                <QuestionContext question={result.question} className="mb-5" />
+              )}
               <div className="text-center">
                 <span
                   className={`inline-block px-4 py-1 rounded-full text-xs tracking-[0.3em] border ${levelColor}`}

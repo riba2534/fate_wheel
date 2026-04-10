@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import { RuneIcon, type RuneKey } from "@/components/ui/RuneIcon";
+import { truncateQuestion } from "@/lib/format";
 import type { WheelResponse, DailyResponse, IChingResponse } from "@/types";
 
 interface CardData {
@@ -15,7 +16,7 @@ interface CardData {
   lucky: { color: string; number: number; direction?: string };
   advice: string[];
   hue: "gold" | "purple" | "crimson" | "neutral";
-  question?: string;
+  question?: string | null;
   date: string;
 }
 
@@ -37,7 +38,7 @@ function toCardData(data: WheelResponse | DailyResponse | IChingResponse): CardD
       lucky: data.reading.lucky,
       advice: data.reading.advice,
       hue: (data.sector.hue as CardData["hue"]) ?? "gold",
-      question: data.question,
+      question: truncateQuestion(data.question, 50),
       date,
     };
   }
@@ -70,7 +71,7 @@ function toCardData(data: WheelResponse | DailyResponse | IChingResponse): CardD
     lucky: data.reading.lucky,
     advice: data.reading.advice,
     hue: "purple",
-    question: data.question,
+    question: truncateQuestion(data.question, 50),
     date,
   };
 }
@@ -229,8 +230,80 @@ export const DivinationCard = forwardRef<HTMLDivElement, DivinationCardProps>(
             }}
           />
 
+          {/* 用户问题上下文 */}
+          {card.question && (
+            <div
+              style={{
+                marginTop: "28px",
+                padding: "20px 28px",
+                borderRadius: "14px",
+                background: "rgba(10,6,24,0.5)",
+                border: "1px solid rgba(212,175,55,0.22)",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "14px",
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  fontSize: "36px",
+                  color: "#D4AF37",
+                  lineHeight: 1,
+                  fontFamily: 'var(--font-display), "Noto Serif SC", serif',
+                  flexShrink: 0,
+                }}
+              >
+                「
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#A09AB8",
+                    letterSpacing: "0.3em",
+                    fontFamily: 'var(--font-display), "Noto Serif SC", serif',
+                    marginBottom: "8px",
+                  }}
+                >
+                  所 问
+                </div>
+                <p
+                  style={{
+                    fontSize: "26px",
+                    lineHeight: 1.6,
+                    color: "#E8E0F8",
+                    fontFamily: 'var(--font-serif), "Noto Serif SC", serif',
+                    margin: 0,
+                    maxHeight: "84px",
+                    overflow: "hidden",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {card.question}
+                </p>
+              </div>
+              <span
+                aria-hidden
+                style={{
+                  fontSize: "36px",
+                  color: "#D4AF37",
+                  lineHeight: 1,
+                  fontFamily: 'var(--font-display), "Noto Serif SC", serif',
+                  flexShrink: 0,
+                  alignSelf: "flex-end",
+                }}
+              >
+                」
+              </span>
+            </div>
+          )}
+
           {/* 主体 - 象征符号 */}
-          <div className="flex flex-col items-center" style={{ marginTop: "60px" }}>
+          <div
+            className="flex flex-col items-center"
+            style={{ marginTop: card.question ? "32px" : "60px" }}
+          >
             <div
               style={{
                 width: "180px",
@@ -298,7 +371,7 @@ export const DivinationCard = forwardRef<HTMLDivElement, DivinationCardProps>(
           {/* 核心解读 */}
           <div
             style={{
-              marginTop: "48px",
+              marginTop: card.question ? "32px" : "48px",
               padding: "28px 36px",
               background: "rgba(10,6,24,0.5)",
               border: "1px solid rgba(212,175,55,0.2)",
