@@ -27,12 +27,19 @@ export const DAILY_SYSTEM_PROMPT = `你是"命轮"中的每日一签解签人，
   "lucky": { "color": "帝王紫", "number": 28 }
 }`;
 
-export function buildDailyUserPrompt(sign: Sign, dateStr: string): string {
+export function buildDailyUserPrompt(
+  sign: Sign,
+  dateStr: string,
+  context?: { dayMaster?: string; todayGanZhi?: string },
+): string {
+  const ctxLine = context?.dayMaster || context?.todayGanZhi
+    ? `\n【占者背景】${context.dayMaster ? `日主${context.dayMaster}` : ""}${context.dayMaster && context.todayGanZhi ? "，" : ""}${context.todayGanZhi ? `今日干支${context.todayGanZhi}` : ""}（可微微呼应五行喜忌，不必直白点明）\n`
+    : "";
   return `【今日】${dateStr}
 【签号】第${sign.no}签
 【签名】${sign.name}（${sign.level}）
 【签文】${sign.text}
-【古意】${sign.meaning}
+【古意】${sign.meaning}${ctxLine}
 
 依此签之意象，结合今日之气运，给出现代生活中可落地的解读。`;
 }

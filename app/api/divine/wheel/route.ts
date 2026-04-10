@@ -75,12 +75,22 @@ export async function POST(req: NextRequest) {
   const sectorIndex = randomInt(WHEEL_SECTORS.length);
   const sector = getSector(sectorIndex);
 
+  // 微事实增强：若用户已在观命模式填过盘，client 会带 x-day-master header（URL-encoded）
+  const dayMasterHdr = req.headers.get("x-day-master");
+  let dayMaster: string | undefined;
+  if (dayMasterHdr) {
+    try {
+      const decoded = decodeURIComponent(dayMasterHdr);
+      if (decoded && decoded.length <= 6) dayMaster = decoded;
+    } catch {}
+  }
+
   let reading;
   try {
     reading = await deepseekJson({
       apiKey: env.DEEPSEEK_API_KEY,
       systemPrompt: WHEEL_SYSTEM_PROMPT,
-      userPrompt: buildWheelUserPrompt(question, sector),
+      userPrompt: buildWheelUserPrompt(question, sector, { dayMaster }),
       validate: (p) => WheelReadingSchema.parse(p),
     });
   } catch (err) {

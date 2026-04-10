@@ -41,12 +41,17 @@ export default function DailyPage() {
     setStage("drawing");
     setError("");
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-client-id": getClientId(),
+      };
+      try {
+        const dm = localStorage.getItem("fw:day-master");
+        if (dm) headers["x-day-master"] = encodeURIComponent(dm);
+      } catch {}
       const resp = await fetch("/api/divine/daily", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-client-id": getClientId(),
-        },
+        headers,
         body: "{}",
       });
       if (!resp.ok) {

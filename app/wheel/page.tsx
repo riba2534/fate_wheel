@@ -38,12 +38,19 @@ export default function WheelPage() {
     wheelRef.current?.startSpinning();
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-client-id": clientIdRef.current,
+      };
+      // 微事实增强：若用户在观命模式留下了日主，附带传给 wheel
+      try {
+        const dm = localStorage.getItem("fw:day-master");
+        if (dm) headers["x-day-master"] = encodeURIComponent(dm);
+      } catch {}
+
       const resp = await fetch("/api/divine/wheel", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-client-id": clientIdRef.current,
-        },
+        headers,
         body: JSON.stringify({ question: q }),
       });
 

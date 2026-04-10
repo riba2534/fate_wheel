@@ -91,9 +91,16 @@ export const WHEEL_SYSTEM_PROMPT = `你是"命轮"中的占卜师，深谙东方
   "advice": ["周一晨起默诵三遍", "面试备三故事", "穿青碧色出行"]
 }`;
 
-export function buildWheelUserPrompt(question: string, sector: WheelSector): string {
+export function buildWheelUserPrompt(
+  question: string,
+  sector: WheelSector,
+  context?: { dayMaster?: string; todayGanZhi?: string },
+): string {
+  const ctxLine = context?.dayMaster || context?.todayGanZhi
+    ? `\n【占者背景】${context.dayMaster ? `日主${context.dayMaster}` : ""}${context.dayMaster && context.todayGanZhi ? "，" : ""}${context.todayGanZhi ? `今日干支${context.todayGanZhi}` : ""}（仅供呼应五行喜忌，不必喧宾夺主，不必直接说出"日主"二字）\n`
+    : "";
   return `【所问】${question}
-【天轮所止】${sector.name}（${sector.level}）· ${sector.essence}
+【天轮所止】${sector.name}（${sector.level}）· ${sector.essence}${ctxLine}
 
 依此扇区之意，紧扣所问之事，给出占卜结果。
 务必：summary 开头给明确判断词并回扣问题关键词；aspects 四维按所问分主次；advice 针对所问给具体行动。`;

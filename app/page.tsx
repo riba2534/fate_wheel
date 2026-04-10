@@ -14,7 +14,17 @@ interface Portal {
   glow: "purple" | "gold";
 }
 
-const PORTALS: Portal[] = [
+const DESTINY_PORTAL: Portal = {
+  href: "/destiny",
+  title: "观命",
+  titleEn: "OBSERVE FATE",
+  rune: "hexagram",
+  description: "以生辰为钥，排八字四柱紫微十二宫。以真数入局，非空言浮语。",
+  hint: "严肃命理",
+  glow: "gold",
+};
+
+const LIGHT_PORTALS: Portal[] = [
   {
     href: "/wheel",
     title: "命运之轮",
@@ -99,9 +109,71 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* 三道占卜之门 */}
+        {/* 严肃命理 · 观命（主推） */}
+        <section className="w-full max-w-5xl mb-10">
+          <div className="flex items-center gap-3 mb-5 justify-center">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[var(--color-gold)]" />
+            <span
+              className="text-[11px] tracking-[0.4em] text-[var(--color-gold-soft)]"
+              style={{ fontFamily: "var(--font-cinzel)" }}
+            >
+              SERIOUS · 严肃命理
+            </span>
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[var(--color-gold)]" />
+          </div>
+          <Link
+            href={DESTINY_PORTAL.href}
+            className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold)] rounded-[20px]"
+          >
+            <GlassCard
+              glow="gold"
+              padding="lg"
+              className="relative flex flex-col md:flex-row md:items-center gap-6 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1 group-hover:border-[rgba(212,175,55,0.6)]"
+            >
+              <div className="flex-shrink-0 mx-auto md:mx-0 w-20 h-20 rounded-full flex items-center justify-center border border-[rgba(212,175,55,0.4)] bg-gradient-to-br from-[rgba(212,175,55,0.3)] to-[rgba(159,18,57,0.2)] group-hover:scale-110 transition-transform duration-500">
+                <RuneIcon name={DESTINY_PORTAL.rune} size={40} className="text-[var(--color-gold-soft)]" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h2
+                  className="text-3xl md:text-4xl text-gold-glow tracking-[0.15em]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {DESTINY_PORTAL.title}
+                </h2>
+                <p
+                  className="mt-1 text-[11px] tracking-[0.3em] text-[var(--color-gold-soft)]"
+                  style={{ fontFamily: "var(--font-cinzel)" }}
+                >
+                  {DESTINY_PORTAL.titleEn}
+                </p>
+                <p
+                  className="mt-4 text-sm md:text-base leading-[1.9] text-[var(--color-text-muted)]"
+                  style={{ fontFamily: "var(--font-serif)" }}
+                >
+                  {DESTINY_PORTAL.description}
+                </p>
+              </div>
+              <div className="flex items-center justify-center md:justify-end gap-1 text-[var(--color-gold-soft)] text-sm tracking-wider group-hover:gap-2 transition-all">
+                enter<span aria-hidden>→</span>
+              </div>
+            </GlassCard>
+          </Link>
+        </section>
+
+        <div className="flex items-center gap-3 mb-5 w-full max-w-5xl justify-center">
+          <span className="h-px w-10 bg-gradient-to-r from-transparent to-[rgba(212,175,55,0.5)]" />
+          <span
+            className="text-[11px] tracking-[0.4em] text-[var(--color-text-muted)]"
+            style={{ fontFamily: "var(--font-cinzel)" }}
+          >
+            LIGHT · 轻度占卜
+          </span>
+          <span className="h-px w-10 bg-gradient-to-l from-transparent to-[rgba(212,175,55,0.5)]" />
+        </div>
+
+        {/* 轻度三门 */}
         <section className="w-full max-w-5xl grid gap-5 md:gap-6 md:grid-cols-3">
-          {PORTALS.map((p) => (
+          {LIGHT_PORTALS.map((p) => (
             <Link
               key={p.href}
               href={p.href}

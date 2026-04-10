@@ -46,7 +46,18 @@ export async function POST(req: NextRequest) {
     "anon";
 
   const date = bjDateStr();
-  const cacheKey = `daily:${clientId}:${date}`;
+  // 微事实增强：若用户已在观命模式填过盘，client 会带 x-day-master header（URL-encoded）
+  const dayMasterHdr = req.headers.get("x-day-master");
+  let dayMaster: string | undefined;
+  if (dayMasterHdr) {
+    try {
+      const decoded = decodeURIComponent(dayMasterHdr);
+      if (decoded && decoded.length <= 6) dayMaster = decoded;
+    } catch {}
+  }
+
+  // cache key 加入 dayMaster 以区分有/无背景的两份解读
+  const cacheKey = `daily:${clientId}:${date}:${dayMaster ?? "x"}`;
 
   const cached = await env.CACHE_KV.get<DailyResponse>(cacheKey, "json");
   if (cached) {
@@ -71,7 +82,7 @@ export async function POST(req: NextRequest) {
     reading = await deepseekJson({
       apiKey: env.DEEPSEEK_API_KEY,
       systemPrompt: DAILY_SYSTEM_PROMPT,
-      userPrompt: buildDailyUserPrompt(sign, date),
+      userPrompt: buildDailyUserPrompt(sign, date, { dayMaster }),
       maxTokens: 500,
       validate: (p) => DailyReadingSchema.parse(p),
     });
