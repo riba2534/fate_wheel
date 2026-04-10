@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getShare } from "@/lib/db/sqlite";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getShare } from "@/lib/db/d1";
 import { StarField } from "@/components/backgrounds/StarField";
 import { MysticHeader } from "@/components/layout/MysticHeader";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RuneIcon } from "@/components/ui/RuneIcon";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +16,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const data = getShare(id);
+  const { env } = await getCloudflareContext({ async: true });
+  const data = await getShare(env.DB, id);
   if (!data) return { title: "卦象已散 · 命轮" };
 
   let title = "命轮之卦";
@@ -39,7 +43,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ShareResultPage({ params }: PageProps) {
   const { id } = await params;
-  const data = getShare(id);
+  const { env } = await getCloudflareContext({ async: true });
+  const data = await getShare(env.DB, id);
   if (!data) notFound();
 
   const date = new Date(data.createdAt).toLocaleDateString("zh-CN", {

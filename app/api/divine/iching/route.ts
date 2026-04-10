@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { deepseekJson } from "@/lib/deepseek/client";
 import { IChingReadingSchema } from "@/lib/deepseek/schemas";
 import {
@@ -11,7 +12,6 @@ import { findHexagramByLines } from "@/lib/divination/iching-hexagrams";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { IChingResponse, ApiError } from "@/types";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const RequestSchema = z.object({
@@ -24,17 +24,18 @@ const RequestSchema = z.object({
       (s) => !/忽略(以上|前面)|system\s*:|ignore\s+(the\s+)?above/i.test(s),
       { message: "请输入正当的占卜问题" },
     ),
-  // 六爻（下到上）；每爻值 6=老阴(变) 7=少阳 8=少阴 9=老阳(变)
   lines: z.array(z.number().int().min(6).max(9)).length(6),
 });
 
 export async function POST(req: NextRequest) {
+  const { env } = getCloudflareContext();
+
   const clientId =
     req.headers.get("x-client-id") ||
     req.headers.get("x-forwarded-for") ||
     "anon";
 
-  const limit = checkRateLimit(clientId);
+  const limit = await checkRateLimit(env.CACHE_KV, clientId);
   if (!limit.ok) {
     return NextResponse.json(
       {
@@ -67,9 +68,7 @@ export async function POST(req: NextRequest) {
   }
   const { question, lines } = parsed.data;
 
-  // 本卦：6/8 为阴，7/9 为阳
   const benLines = lines.map((n) => (n === 7 || n === 9 ? 1 : 0));
-  // 变卦：6/9 为变爻 → 反转
   const bianLines = lines.map((n, i) =>
     n === 6 ? 1 : n === 9 ? 0 : benLines[i]!,
   );
@@ -89,6 +88,7 @@ export async function POST(req: NextRequest) {
   let reading;
   try {
     reading = await deepseekJson({
+      apiKey: env.DEEPSEEK_API_KEY,
       systemPrompt: ICHING_SYSTEM_PROMPT,
       userPrompt: buildIChingUserPrompt({
         question,

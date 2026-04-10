@@ -41,7 +41,7 @@ export function CardExporter({ data }: CardExporterProps) {
         body: JSON.stringify(data),
       });
       if (!resp.ok) throw new Error("分享失败");
-      const { shareId } = await resp.json();
+      const { shareId } = (await resp.json()) as { shareId: string };
       const url = `${window.location.origin}/r/${shareId}`;
 
       // 尝试 Web Share API，失败则复制到剪贴板

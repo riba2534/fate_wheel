@@ -10,6 +10,10 @@ out/
 build/
 dist/
 
+# cloudflare / opennext
+.open-next/
+.wrangler/
+
 # production
 *.tsbuildinfo
 next-env.d.ts
@@ -53,3 +57,4 @@ data/*.db-shm
 # IDE
 .idea/
 .vscode/
+.dev.vars

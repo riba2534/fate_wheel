@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { deepseekJson } from "@/lib/deepseek/client";
 import { WheelReadingSchema } from "@/lib/deepseek/schemas";
 import {
@@ -16,7 +17,6 @@ import { randomInt } from "@/lib/divination/rng";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { WheelResponse, ApiError } from "@/types";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const RequestSchema = z.object({
@@ -32,9 +32,13 @@ const RequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  // 限流
-  const clientId = req.headers.get("x-client-id") || req.headers.get("x-forwarded-for") || "anon";
-  const limit = checkRateLimit(clientId);
+  const { env } = getCloudflareContext();
+
+  const clientId =
+    req.headers.get("x-client-id") ||
+    req.headers.get("x-forwarded-for") ||
+    "anon";
+  const limit = await checkRateLimit(env.CACHE_KV, clientId);
   if (!limit.ok) {
     const err: ApiError = {
       error: limit.reason === "day" ? "今日占卜次数已用尽" : "占卜过于频繁，请稍后再试",
@@ -47,7 +51,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // 输入校验
   let body: unknown;
   try {
     body = await req.json();
@@ -69,14 +72,13 @@ export async function POST(req: NextRequest) {
   }
   const { question } = parsed.data;
 
-  // 随机选扇区
   const sectorIndex = randomInt(WHEEL_SECTORS.length);
   const sector = getSector(sectorIndex);
 
-  // 调用 DeepSeek
   let reading;
   try {
     reading = await deepseekJson({
+      apiKey: env.DEEPSEEK_API_KEY,
       systemPrompt: WHEEL_SYSTEM_PROMPT,
       userPrompt: buildWheelUserPrompt(question, sector),
       validate: (p) => WheelReadingSchema.parse(p),

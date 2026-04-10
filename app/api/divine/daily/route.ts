@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { deepseekJson } from "@/lib/deepseek/client";
 import { DailyReadingSchema } from "@/lib/deepseek/schemas";
 import {
@@ -11,37 +12,48 @@ import { seededInt } from "@/lib/divination/rng";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { DailyResponse, ApiError } from "@/types";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function todayStr(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+// 按北京时间（UTC+8）计算"今天"，避免 Workers UTC 环境下日期漂移 8 小时
+function bjDateStr(now = Date.now()): string {
+  return new Date(now + 8 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-// 服务端全天缓存（同一用户同一日必返同一结果）
-const dailyCache = new Map<string, { response: DailyResponse; expireAt: number }>();
+// 计算到下一个北京时间零点还剩多少秒
+function secondsUntilBjMidnight(now = Date.now()): number {
+  const bjNow = new Date(now + 8 * 3600 * 1000);
+  const bjTomorrow = new Date(
+    Date.UTC(
+      bjNow.getUTCFullYear(),
+      bjNow.getUTCMonth(),
+      bjNow.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
+  const bjNowMs = bjNow.getTime();
+  return Math.max(60, Math.ceil((bjTomorrow.getTime() - bjNowMs) / 1000));
+}
 
 export async function POST(req: NextRequest) {
+  const { env } = getCloudflareContext();
+
   const clientId =
     req.headers.get("x-client-id") ||
     req.headers.get("x-forwarded-for") ||
     "anon";
 
-  const date = todayStr();
-  const cacheKey = `${clientId}:${date}`;
+  const date = bjDateStr();
+  const cacheKey = `daily:${clientId}:${date}`;
 
-  // 缓存命中
-  const cached = dailyCache.get(cacheKey);
-  if (cached && cached.expireAt > Date.now()) {
-    return NextResponse.json(cached.response);
+  const cached = await env.CACHE_KV.get<DailyResponse>(cacheKey, "json");
+  if (cached) {
+    return NextResponse.json(cached);
   }
 
-  // 限流（缓存未命中才消耗）
-  const limit = checkRateLimit(clientId);
+  const limit = await checkRateLimit(env.CACHE_KV, clientId);
   if (!limit.ok) {
     const err: ApiError = {
       error: limit.reason === "day" ? "今日占卜次数已尽" : "请稍后再试",
@@ -51,14 +63,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(err, { status: 429 });
   }
 
-  // 根据 clientId + date 计算签号（同用户同天必同签）
   const signIdx = await seededInt(`${clientId}:${date}`, SIGNS.length);
   const sign = getSign(SIGNS[signIdx]!.no);
 
-  // DeepSeek 解读
   let reading;
   try {
     reading = await deepseekJson({
+      apiKey: env.DEEPSEEK_API_KEY,
       systemPrompt: DAILY_SYSTEM_PROMPT,
       userPrompt: buildDailyUserPrompt(sign, date),
       maxTokens: 500,
@@ -81,20 +92,9 @@ export async function POST(req: NextRequest) {
     createdAt: Date.now(),
   };
 
-  // 缓存到次日 0 点
-  const now = new Date();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  dailyCache.set(cacheKey, {
-    response,
-    expireAt: tomorrow.getTime(),
+  await env.CACHE_KV.put(cacheKey, JSON.stringify(response), {
+    expirationTtl: secondsUntilBjMidnight(),
   });
-
-  // 清理过期缓存
-  if (dailyCache.size > 5000) {
-    for (const [k, v] of dailyCache) {
-      if (v.expireAt < Date.now()) dailyCache.delete(k);
-    }
-  }
 
   return NextResponse.json(response);
 }

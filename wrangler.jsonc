@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fate-wheel",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-11-01",
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "fate.red", "custom_domain": true },
+    { "pattern": "www.fate.red", "custom_domain": true }
+  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://fate.red"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fate-wheel",
+      "database_id": "595277b8-8f06-4878-8b82-b61822405522"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_KV",
+      "id": "1aa701f870ae4403988aad86de2e70cc"
+    }
+  ]
+}

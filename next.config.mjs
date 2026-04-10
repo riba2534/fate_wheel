@@ -1,4 +1,7 @@
 import withPWAInit from "@ducanh2912/next-pwa";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+await initOpenNextCloudflareForDev();
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -12,10 +15,6 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["better-sqlite3"],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default withPWA(nextConfig);
